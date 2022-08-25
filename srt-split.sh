@@ -29,7 +29,8 @@ then
   i=0
   echo "Extracting timecodes from subtitle file..."
   # create two arrays for the start times and durations of all the clips
-  while read -r line ; do
+  while read -r line
+  do
    # extract start and end timecodes from each line of srt file
    startTime=`echo $line | egrep -o "^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}"`
    endTime=`echo $line | egrep -o " [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}"`
@@ -52,6 +53,33 @@ fi
 echo "Ready to start cutting."
 echo ""
 
+#my fuckin dirty code
+if [ -f "$subtitleFile" ]
+then
+  ii=0
+  echo "Extracting timecodes from subtitle file..."
+  # create two arrays for the start times and durations of all the clips
+  while read -r line2
+  do
+   l=`echo $line2 | cut -d: -f1`
+   
+   #l2=$((++l))
+   #echo $l2
+   subtitleBodies[ii]="$(sed -n $((++l))p $subtitleFile)"
+   #echo ${subtitleBodies[i]}
+   ii=$[ii+1]
+  done < <(egrep -n "[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}" "$subtitleFile")
+else
+  echo "ERR: no file found at $subtitleFile"
+  echo "usage: srt-split.sh [video file] [subtitle file] (optional)[output format]"
+  exit 1
+fi
+echo "Ready to start cutting."
+echo ""
+
+echo $i
+echo $ii
+
 # Make directory to store output clips
 mkdir "$fileName-clips"
 
@@ -66,11 +94,15 @@ do
   if [ ! -z "$format" ]
   # assign the proper format to the output file to be passed to ffmpeg
   then
+  	echo -n "j=${j}"
+  	echo -n "${subtitleBodies[j]}"
     echo -n "Cutting segment no. ${k} of ${numOfClips} and exporting to ${format}..."
-    outputFile="$fileName-clips/${k}-$fileName.$format"
+    #outputFile="$fileName-clips/${k}-$fileName.$format"
+    outputFile="$fileName-clips/${k}-${subtitleBodies[j]}.$format"
     else
     echo -n "Cutting segment no. ${k} of ${numOfClips} and exporting to original ${fileExt} format..."
-    outputFile="$fileName-clips/${k}-$fileName.$fileExt"
+    #outputFile="$fileName-clips/${k}-$fileName.$fileExt"
+    outputFile="$fileName-clips/${k}-${subtitleBodies[j]}.$fileExt"
   fi
   ffmpeg -v warning -i "$fileToCut" -strict -2 -ss "${startTimeForFfmpeg[j]}" -t "${timeDiff[j]}" "$outputFile"
   if [ $? -eq 0 ]; then

@@ -1,3 +1,5 @@
+This branch has been modified to use the subtitle set in the srt file as the filename when extracting audio/video from the srt file.
+
 # split-video-by-srt
 
 You can use this bash script to automatically split video files up into seperate chunks based on timecodes from an .srt subtitle file.
@@ -17,3 +19,4 @@ This script takes the timecodes out of the .srt file and outputs a seperate vide
 
 More features and functionality to come. Contributions welcome.
 
+#
